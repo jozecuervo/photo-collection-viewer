@@ -10,6 +10,7 @@
     this.currentPhotoId = null;
     this.lightboxEl = document.getElementById('lightbox');
     this.lightboximgEl = document.getElementById('lightboximg');
+    this.lightboxtitleEl = document.getElementById('lightboxtitle');
     this.prevEl = document.getElementById('prev');
     this.nextEl = document.getElementById('next');
     var closeEl = document.getElementById('close');
@@ -45,7 +46,7 @@
     this.currentPhotoId = id;
     var photo = this.collection.getPhoto(id);
     this.lightboximgEl.setAttribute('src', photo.photoURL);
-    //TODO inject photo title
+    this.lightboxtitleEl.innerHTML = photo.title;
     this.lightboxEl.style.display = '';
   };
 
