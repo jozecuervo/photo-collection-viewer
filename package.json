@@ -1,0 +1,16 @@
+{
+  "name": "photo-collection-viewer",
+  "version": "1.0.0",
+  "description": "A web page that shows a grid of photo thumbnails",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "google-closure-compiler": "^20170218.0.0",
+    "gulp": "^3.9.1",
+    "gulp-sass": "^3.1.0"
+  }
+}
