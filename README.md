@@ -52,6 +52,10 @@ All assets will be compiled to `dist` directory
 
  - Pagination: Initially I had intended to only deal with a finite number of images in a single album but this seemed like an unworthy demonstration. I used flickr's search endpoint to get some larger paged results. Since the spec did not mention infinite scrolling or a displayed pagination index, I decided to implement a very minimal solution where I only load more images if the user attempts to click next from within the lightbox view on the last loaded image. I stored the page count and index on the model, so it would be straightforward to implement any representation in the UI or trigger updates in a different manner.
 
+ - Keybindings: I didn't use keybindings for prev/next, but it would be trivial to bind these events to the controller.
+
+ - Transitions / animations: I avoided adding any fancy animations, simply because it wasn't in the spec. If I were to animate the prev/next behavior, I would probably set up some async callback for a transition end event and use css animations to slide one image off screen while the other slides in, grabbing those 2 images from the collection based on the transition direction.
+
  - Grid system:  I started thinking about all the elegant grid layout systems I've seen in the last few years, and decided to keep it simple for the demo and just use inline-block divs. My thoughts on grid systems are that they are generally more maintenance than convenience. For a production app I might use something like neat grid or gridle, but these have more overhead than the rest of my app combined so I decided to keep the demo simple, since implementing someones grid system just proves I can install software. I avoided issues with aspect ratio variations and just used flickr's square thumbnails, since that's what they're there for.
 
  - Build: I've worked with Google closure in the past so this was a quick decision. It offers code minification, obfuscation, validation and static type checking, which are all highly desirable goals. I made a nice easy build task that drops all the needed assets into
