@@ -1,0 +1,224 @@
+<!doctype html>
+<html class="no-js" lang="en"><head>
+<meta name="viewport" content="user-scalable=yes, width=device-width, initial-scale=1.0" />
+<style>
+body,
+html {
+  background: white;
+  color: white;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+  font-weight: 100;
+  text-align: center;
+}
+a,a:visited, a:active {
+  color:white;
+}
+#grid {
+  text-align: center;
+  margin:2% auto;
+  width: 90%;
+  height: 100%;
+  overflow-y: scroll;
+  user-select: none;
+}
+.thumb {
+  display: inline-block;
+  width:75px;
+  height:75px;
+  background-color: rgba(0, 0, 0, 0.1);
+  margin: 2%;
+  overflow: hidden;
+  /*float:left;*/
+}
+#lightbox {
+ position: absolute;
+ top:0;
+ right:0;
+ bottom:0;
+ left:0;
+ background-color:rgba(0, 0, 0, 0.8);
+ text-align:center;
+ padding-top:10%;
+ color:white;
+ user-select: none;
+}
+#lightbox img {
+  margin:0 auto;
+  max-width:80%;
+}
+#lightbox.visible {
+  display:block;
+}
+#lightbox #prev,
+#lightbox #next  {
+  position: absolute;
+  bottom:10%;
+  cursor: pointer;
+  font-size:40px;
+}
+#lightbox #prev {
+  left:5%;
+}
+#lightbox #next {
+  right:5%;
+}
+#close {
+  position: absolute;
+  top:20px;
+  left:20px;
+  font-size:24px;
+  cursor: pointer;
+}
+</style>
+</head>
+<body>
+  <div id="grid">
+  </div>
+  <div id="lightbox" style="display:none;">
+    <a id="close">X</a>
+    <a id="prev">&laquo;</a>
+    <a id="next">&raquo;</a>
+    <img id="lightboximg">
+  </div>
+<script>
+var API_KEY = '3a8d51ed5ffae3db7993378f81f9aeef'; // Secret: 50780037fedb0efe
+var PER_PAGE = 48;
+
+function ajax (url, callback) {
+  var request = new XMLHttpRequest();
+  request.open('GET', url, true);
+  request.onload = function() {
+    if (request.status >= 200 && request.status < 400) {
+      var data = JSON.parse(request.responseText);
+      callback.success(data);
+    } else {
+      callback.error();
+    }
+  };
+  request.onerror = function() {
+    callback.error()
+  };
+  request.send();
+}
+
+function getPhotosSearch (keyword, page, callback) {
+  console.log('getPhotosSearch', page);
+  var url =  'https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=' + API_KEY + '&tags=' + keyword + '&format=json&nojsoncallback=1&per_page=' + PER_PAGE + '&page=' + page;
+  ajax(url, {
+    success:function (resp) {
+      window.MyPhotoApp.downloadInProgress = false;
+      callback(resp);
+    },
+    error:function(err) {
+      window.MyPhotoApp.downloadInProgress = false;
+      console.error(err);
+    }
+  });
+}
+/*
+https://farm{farm-id}.staticflickr.com/{server-id}/{id}_{secret}.jpg
+https://farm{farm-id}.staticflickr.com/{server-id}/{id}_{secret}_[mstzb].jpg
+https://farm{farm-id}.staticflickr.com/{server-id}/{id}_{o-secret}_o.(jpg|gif|png)
+*/
+function genImgThumbURL (farmId, serverId, id, secret) {
+  var url = 'https://farm' + farmId + '.staticflickr.com/' + serverId + '/' + id + '_' + secret + '_s.jpg';
+  return url;
+}
+function genImgURL (farmId, serverId, id, secret) {
+  var url = 'https://farm' + farmId + '.staticflickr.com/' + serverId + '/' + id + '_' + secret + '_z.jpg';
+  return url;
+}
+
+function generateThumbnailElement (id, imgsrc) {
+  var thumb = document.createElement('div');
+  thumb.setAttribute('class', 'thumb');
+  thumb.setAttribute('id', id);
+  var img = document.createElement('img');
+  img.setAttribute('src', imgsrc);
+  thumb.appendChild(img);
+  var grid = document.getElementById("grid");
+  grid.appendChild(thumb);
+  thumb.addEventListener('click', thumbClick);
+  return thumb
+}
+
+function thumbClick (evt) {
+  console.log(evt.currentTarget);
+  var nodeList = Array.prototype.slice.call( document.getElementById('grid').children );
+  currentIndex = nodeList.indexOf(evt.currentTarget);
+  showLightbox(currentIndex);
+}
+
+function showLightbox (index) {
+  var photo = window.MyPhotoApp.photos[index];
+  var imgURL = genImgURL(photo.farm, photo.server, photo.id, photo.secret)
+  var lightbox = document.getElementById("lightbox");
+  var lightboximg = document.getElementById("lightboximg");
+  lightboximg.setAttribute('src', imgURL);
+  lightbox.style.display = '';
+}
+function hideLightbox (evt) {
+  lightbox.style.display = 'none';
+}
+
+function prevImage (evt) {
+  if (currentIndex > 0){
+    currentIndex--;
+    showLightbox(currentIndex);
+  }
+}
+
+function nextImage (evt) {
+  if (currentIndex < window.MyPhotoApp.photos.length - 1) {
+    currentIndex++;
+    showLightbox(currentIndex);
+  } else {
+    loadMore();
+  }
+}
+function savePhotos (photos) {
+  photos.photo.map( function(photo){
+    var imgURL = genImgThumbURL(photo.farm, photo.server, photo.id, photo.secret)
+    generateThumbnailElement('el' + photo.id, imgURL);
+    window.MyPhotoApp.photos.push(photo);
+  });
+}
+
+function loadMore () {
+  if (window.MyPhotoApp.downloadInProgress) {
+    return;
+  }
+  window.MyPhotoApp.downloadInProgress = true;
+  if (window.MyPhotoApp.page !== null) {
+    window.MyPhotoApp.page++;
+  } else {
+    // flickr treats page 0 and 1 the same
+    window.MyPhotoApp.page = 1;
+  }
+  getPhotosSearch('baloon', window.MyPhotoApp.page, function(photoSet) {
+    savePhotos(photoSet.photos);
+  })
+}
+
+function init (){
+  window['MyPhotoApp'] = {};
+  window.MyPhotoApp.photos = [];
+  window.MyPhotoApp.page = null;
+  window.MyPhotoApp.currentIndex = -1;
+  window.MyPhotoApp.downloadInProgress = false;
+  var prev = document.getElementById('prev');
+  prev.addEventListener('click', prevImage);
+  var next = document.getElementById('next');
+  next.addEventListener('click', nextImage);
+  var close = document.getElementById('close');
+  close.addEventListener('click', hideLightbox);
+  loadMore();
+}
+window.addEventListener('load', init);
+</script>
+</body>
