@@ -1,14 +1,22 @@
 /* globals require */
 var gulp = require('gulp');
 var sass = require('gulp-sass');
+var closureCompiler = require('google-closure-compiler').gulp();
+var htmlreplace = require('gulp-html-replace');
 
-gulp.task('default', function() {
-  // place code for your default task here
+gulp.task('default', ['template','sass','js-compile'], function() {
+  
 });
 
-var closureCompiler = require('google-closure-compiler').gulp();
+gulp.task('template', function() {
+  gulp.src('src/index.html')
+    .pipe(htmlreplace({
+      'css': 'style.css',
+      'js': 'photo_collection_viewer.min.js'
+    }))
+    .pipe(gulp.dest('dist/'));
+});
 
-/* http://anas.pk/2015/09/02/solution-no-java-runtime-present-mac-yosemite/ */
 gulp.task('js-compile', function () {
   return gulp.src('./src/**/*.js', {base: './'})
   .pipe(closureCompiler({
