@@ -8,7 +8,7 @@
   var GridView = function (collection) {
     this.collection = collection;
     this.gridEl = document.getElementById('grid');
-    this.$thumbnail = window.qs('.thumbnail');
+    this.$thumbnail = document.querySelector('.thumbnail');
   };
 
   /**
@@ -18,9 +18,11 @@
   GridView.prototype.bind = function (eventName, handler) {
     var self = this;
     if (eventName === 'thumbClicked') {
-      window.$on(self.gridEl, 'click', function (evt) {
+      // window.$on = function (target, type, callback, useCapture) {
+      self.gridEl.addEventListener('click', function (evt) {
         self._handleClick(evt, handler);
-      });
+      }, true);
+
     }
   };
 

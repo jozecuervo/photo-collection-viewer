@@ -27,13 +27,13 @@
   LightBoxView.prototype.bind = function (eventName, handler) {
     var self = this;
     if (eventName === 'prevClicked') {
-      window.$on(self.prevEl, 'click', function () {
+      self.prevEl.addEventListener('click', function () {
         handler();
-      });
+      }, true);
     } else if (eventName === 'nextClicked'){
-      window.$on(self.nextEl, 'click', function () {
+      self.nextEl.addEventListener('click', function () {
         handler();
-      });
+      }, true);
     }
   };
 
